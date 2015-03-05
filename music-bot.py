@@ -60,35 +60,39 @@ for c in stream.iter_content():
         this_msg = json.loads(msg_buf.getvalue())
 
         if (this_msg['event'] == 'message' or this_msg['event'] == 'comment') and int(this_msg['user']) != user_id:
-            last_msg_id = store.get('lastmessage:%s' % this_msg['user'])
+            if ('http://' in this_msg['content']
+                or 'https://' in this_msg['content']
+                or 'youtube.com' in this_msg['content']
+                or 'soundcloud.com' in this_msg['content']):
+                last_msg_id = store.get('lastmessage:%s' % this_msg['user'])
 
-            if last_msg_id is not None:
-                res = get('https://api.flowdock.com/flows/%s/%s/messages/%s' % (config['flowdock']['organization'], config['flowdock']['flow_id'], last_msg_id),
-                            auth=(config['flowdock']['api_key'], ''),
-                        )
-                last_msg = res.json()
+                if last_msg_id is not None:
+                    res = get('https://api.flowdock.com/flows/%s/%s/messages/%s' % (config['flowdock']['organization'], config['flowdock']['flow_id'], last_msg_id),
+                                auth=(config['flowdock']['api_key'], ''),
+                            )
+                    last_msg = res.json()
 
-                this_date = datetime.fromtimestamp(this_msg['sent'] / 1000.0)
-                last_date = datetime.fromtimestamp(last_msg['sent'] / 1000.0)
+                    this_date = datetime.fromtimestamp(this_msg['sent'] / 1000.0)
+                    last_date = datetime.fromtimestamp(last_msg['sent'] / 1000.0)
 
-                if (this_date.year == last_date.year 
-                    and this_date.month == last_date.month
-                    and this_date.day == last_date.day):
-                    msg_content = "You've already posted once today. Try to post only once a day.\nhttps://flowdock.com/app/%s/%s/messages/%d" % (config['flowdock']['organization'], config['flowdock']['flow_id'], this_msg['id'])
-                    if this_msg['event'] == 'message':
-                        msg_id = this_msg['id']
-                    elif this_msg['event'] == 'comment':
-                        for tag in this_msg['tags']:
-                            if tag.startswith('influx:'):
-                                msg_id = int(tag[len('influx:'):])
-                                break
-                    if msg_id is not None:
-                        send_comment(msg_id, msg_content)
-                    else:
-                        send_message(msg_content)
+                    if (this_date.year == last_date.year 
+                        and this_date.month == last_date.month
+                        and this_date.day == last_date.day):
+                        msg_content = "You've already posted once today. Try to post only once a day.\nhttps://flowdock.com/app/%s/%s/messages/%d" % (config['flowdock']['organization'], config['flowdock']['flow_id'], last_msg['id'])
+                        if this_msg['event'] == 'message':
+                            msg_id = this_msg['id']
+                        elif this_msg['event'] == 'comment':
+                            for tag in this_msg['tags']:
+                                if tag.startswith('influx:'):
+                                    msg_id = int(tag[len('influx:'):])
+                                    break
+                        if msg_id is not None:
+                            send_comment(msg_id, msg_content)
+                        else:
+                            send_message(msg_content)
 
 
-            store.set('lastmessage:%s' % this_msg['user'], this_msg['id'])
+                store.set('lastmessage:%s' % this_msg['user'], this_msg['id'])
         msg_buf.seek(0)
         msg_buf.truncate()
 
