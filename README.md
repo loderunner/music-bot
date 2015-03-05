@@ -9,5 +9,7 @@ cd music-bot
 virtualenv env
 . env/bin/activate
 pip install -r requirements.txt
+vi config.json
+# Set your configuration
 python music-bot.py
 ```

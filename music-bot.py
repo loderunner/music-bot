@@ -7,10 +7,10 @@ import json
 import redis
 import sys
 
-config = json.load('config.json')
+config = json.load(file('config.json'))
 
 def send_message(content):
-    res = post('https://api.flowdock.com/flows/forgetbox/%s/messages' % config['flowdock']['flow_id'],
+    res = post('https://api.flowdock.com/flows/%s/%s/messages' % (config['flowdock']['organization'], config['flowdock']['flow_id']),
          auth=(config['flowdock']['api_key'], ''),
          data={'event' : 'message',
                'content' : content
@@ -21,7 +21,7 @@ def send_message(content):
         print res.text
 
 def send_comment(msg_id, content):
-    res = post('https://api.flowdock.com/flows/forgetbox/%s/messages/%d/comments' % (config['flowdock']['flow_id'], msg_id),
+    res = post('https://api.flowdock.com/flows/%s/%s/messages/%d/comments' % (config['flowdock']['organization'], config['flowdock']['flow_id'], msg_id),
          auth=(config['flowdock']['api_key'], ''),
          data={'event' : 'comment',
                'content' : content
@@ -44,7 +44,7 @@ if res.status_code != 200:
 user = res.json()
 user_id = user['id']
 
-stream = get('https://stream.flowdock.com/flows?filter=forgetbox/%s' % config['flowdock']['flow_id'],
+stream = get('https://stream.flowdock.com/flows?filter=%s/%s' % (config['flowdock']['organization'], config['flowdock']['flow_id']),
              stream=True,
              auth=(config['flowdock']['api_key'], ''),
              headers={'Accept':'application/json'}
@@ -63,7 +63,7 @@ for c in stream.iter_content():
             last_msg_id = store.get('lastmessage:%s' % this_msg['user'])
 
             if last_msg_id is not None:
-                res = get('https://api.flowdock.com/flows/forgetbox/%s/messages/%s' % (config['flowdock']['flow_id'], last_msg_id),
+                res = get('https://api.flowdock.com/flows/%s/%s/messages/%s' % (config['flowdock']['organization'], config['flowdock']['flow_id'], last_msg_id),
                             auth=(config['flowdock']['api_key'], ''),
                         )
                 last_msg = res.json()
@@ -90,3 +90,10 @@ for c in stream.iter_content():
             store.set('lastmessage:%s' % this_msg['user'], this_msg['id'])
         msg_buf.seek(0)
         msg_buf.truncate()
+
+if stream.status_code >= 400:
+    print 'Error: could not get flow stream.'
+    print 'HTTP Error:'
+    print '\t%d %s' % (stream.status_code, stream.reason)
+    print '\t' + stream.text
+    sys.exit(1)
