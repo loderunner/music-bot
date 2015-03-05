@@ -1,0 +1,12 @@
+{
+    "flowdock" : {
+        "api_key" : "",
+        "organization" : "",
+        "flow_id" : "music"
+    },
+    "redis" : {
+        "host" : "localhost",
+        "port" : 6379,
+        "db" : 0
+    }
+}
