@@ -74,6 +74,7 @@ for c in stream.iter_content():
                 if (this_date.year == last_date.year 
                     and this_date.month == last_date.month
                     and this_date.day == last_date.day):
+                    msg_content = "You've already posted once today. Try to post only once a day.\nhttps://flowdock.com/app/%s/%s/messages/%d" % (config['flowdock']['organization'], config['flowdock']['flow_id'], this_msg['id'])
                     if this_msg['event'] == 'message':
                         msg_id = this_msg['id']
                     elif this_msg['event'] == 'comment':
@@ -82,9 +83,9 @@ for c in stream.iter_content():
                                 msg_id = int(tag[len('influx:'):])
                                 break
                     if msg_id is not None:
-                        send_comment(msg_id, 'No.')
+                        send_comment(msg_id, msg_content)
                     else:
-                        send_message('No.')
+                        send_message(msg_content)
 
 
             store.set('lastmessage:%s' % this_msg['user'], this_msg['id'])
