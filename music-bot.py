@@ -59,11 +59,12 @@ for c in stream.iter_content():
     else:
         this_msg = json.loads(msg_buf.getvalue())
 
-        if (this_msg['event'] == 'message' or this_msg['event'] == 'comment') and int(this_msg['user']) != user_id:
-            if ('http://' in this_msg['content']
-                or 'https://' in this_msg['content']
-                or 'youtube.com' in this_msg['content']
-                or 'soundcloud.com' in this_msg['content']):
+        if (this_msg['event'] == 'message' or this_msg['event'] == 'comment' or this_msg['event'] == 'message-edit') and int(this_msg['user']) != user_id:
+            content = this_msg['content']['updated_content'] if (this_msg['event'] == 'message-edit') else this_msg['content']
+            if ('http://' in content
+                or 'https://' in content
+                or 'youtube.com' in content
+                or 'soundcloud.com' in content):
                 last_msg_id = store.get('lastmessage:%s' % this_msg['user'])
 
                 if last_msg_id is not None:

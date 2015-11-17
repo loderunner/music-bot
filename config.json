@@ -1,7 +1,7 @@
 {
     "flowdock" : {
-        "api_key" : "",
-        "organization" : "",
+        "api_key" : "cea5d2e7a05f66f2a66ed974771a6afd",
+        "organization" : "forgetbox",
         "flow_id" : "music"
     },
     "redis" : {
