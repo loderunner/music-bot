@@ -61,6 +61,7 @@ for c in stream.iter_content():
 
         if (this_msg['event'] == 'message' or this_msg['event'] == 'comment' or this_msg['event'] == 'message-edit') and int(this_msg['user']) != user_id:
             content = this_msg['content']['updated_content'] if (this_msg['event'] == 'message-edit') else this_msg['content']
+            print content
             if ('http://' in content
                 or 'https://' in content
                 or 'youtube.com' in content
@@ -83,6 +84,8 @@ for c in stream.iter_content():
                             msg_content = "You've already posted once today. Try to post only once a day.\nhttps://flowdock.com/app/%s/%s/messages/%d" % (config['flowdock']['organization'], config['flowdock']['flow_id'], last_msg['id'])
                             if this_msg['event'] == 'message':
                                 msg_id = this_msg['id']
+                            elif this_msg['event'] == 'message-edit':
+                                msg_id = this_msg['content']['message']
                             elif this_msg['event'] == 'comment':
                                 for tag in this_msg['tags']:
                                     if tag.startswith('influx:'):
